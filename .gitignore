@@ -1,0 +1,6 @@
+# Ignora arquivos temporários
+*.tmp
+
+# Ignora diretório de dependências
+/node_modules
+.env
