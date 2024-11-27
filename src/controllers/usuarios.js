@@ -1,5 +1,7 @@
 const db = require("../config/db");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const SECRET_KEY = process.env.SECRET_KEY;
 
 module.exports = {
   async listarUsuarios(req, res) {
@@ -24,28 +26,51 @@ module.exports = {
 
   async login(req, res) {
     try {
-      const { email, senha } = req.body;
+      const { email_usu, senha_usu } = req.body;
 
-      const sql = `select * from usuarios where email = $1 and senha = $2`;
+      const sql = `SELECT * from usuarioTeste where email_usu = $1`;
+      const resposta = await db.query(sql, [email_usu]);
 
-      const resposta = await db.query(sql, [email, senha]);
-
-      if (resposta.rows.length > 0) {
-        return res.status(200).json({
-          sucesso: true,
-          mensagem: "Login realizado com sucesso",
-          dados: resposta.rows,
+      //verifica se o uusuario existe
+      if (resposta.rows.length === 0) {
+        return res.status(401).json({
+          sucesso: false,
+          mensagem: "Email ou senha incorretos",
+          dados: null,
         });
       }
-      if (resposta.rows.length === 0) {
-        return res
-          .status(401)
-          .json({ sucesso: false, mensagem: "E-mail ou senha inválidos" });
+
+      const user = resposta.rows[0]; //pega os dados do usuario retornado
+
+      //verifica a senha e compara com bcrypt hash
+      const senhaValida = await bcrypt.compare(senha_usu, user.senha_usu);
+
+      if (!senhaValida) {
+        return res.status(401).json({
+          sucesso: false,
+          mensagem: "Email ou senha incorretos",
+          dados: null,
+        });
       }
+
+      //gera o token pro usuairo logado
+      const token = jwt.sign(
+        { id_usu: user.id_usu, email_usu: user.email_usu },
+        SECRET_KEY,
+        {
+          expiresIn: "1h", //token valido por 1hora
+        }
+      );
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: "Login realizado com sucesso",
+        dados: [token, user],
+      });
     } catch (error) {
       return res.status(500).json({
-        sucesso: false,
-        mesagem: "Erro ao realizar login",
+        secuesso: false,
+        mensagem: "Erro ao realizar login",
         dados: error.message,
       });
     }
