@@ -1,7 +1,10 @@
 const db = require("../config/db");
+require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const SECRET_KEY = process.env.SECRET_KEY;
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.API_KEY_SENDGRID);
 
 module.exports = {
   async listarUsuarios(req, res) {
@@ -92,7 +95,24 @@ module.exports = {
         hashedPassword,
       ]);
 
-      res.status(201).json({
+      const msg = {
+        to: email_usu,
+        from: "pedrohenrique040497@outlook.com", // Certifique-se que este email foi verificado no SendGrid
+        subject: "Bem-vindo ao nosso sistema!",
+        text: `Olá ${nome_usu},\n\nObrigado por se cadastrar no nosso sistema! Estamos felizes em tê-lo conosco.`,
+      };
+
+      try {
+        await sgMail.send(msg);
+        console.log("E-mail enviado com sucesso!");
+      } catch (error) {
+        console.error(
+          "Erro ao enviar e-mail:",
+          error.response?.body || error.message
+        );
+      }
+
+      return res.status(201).json({
         sucesso: true,
         mensagem: "Usuario cadastrado com sucesso",
         dados: resposta.rows,
