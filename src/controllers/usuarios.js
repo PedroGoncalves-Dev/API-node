@@ -98,8 +98,12 @@ module.exports = {
       const msg = {
         to: email_usu,
         from: "pedrohenrique040497@outlook.com", // Certifique-se que este email foi verificado no SendGrid
-        subject: "Bem-vindo ao nosso sistema!",
-        text: `Olá ${nome_usu},\n\nObrigado por se cadastrar no nosso sistema! Estamos felizes em tê-lo conosco.`,
+        // subject: "Bem-vindo ao nosso sistema!",
+        // text: `Olá ${nome_usu},\n\nObrigado por se cadastrar no nosso sistema! Estamos felizes em tê-lo conosco.`,
+        templateId: "d-1dbbd2a5699049a7babe494580c658a8",
+        dynamicTemplateData: {
+          nome: nome_usu,
+        },
       };
 
       try {
